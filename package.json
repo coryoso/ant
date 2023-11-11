@@ -3,6 +3,7 @@
 	"version": "0.1.0",
 	"private": true,
 	"dependencies": {
+		"@react-three/cannon": "^6.6.0",
 		"@react-three/drei": "^9.88.13",
 		"@react-three/fiber": "^8.15.10",
 		"@testing-library/jest-dom": "^5.14.1",
@@ -13,6 +14,7 @@
 		"@types/react": "^18.0.0",
 		"@types/react-dom": "^18.0.0",
 		"@types/three": "^0.158.2",
+		"cannon-es": "^0.20.0",
 		"react": "^18.2.0",
 		"react-dom": "^18.2.0",
 		"react-scripts": "5.0.1",
