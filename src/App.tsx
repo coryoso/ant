@@ -1,23 +1,13 @@
+import { Canvas } from "@react-three/fiber"
 import "./App.css"
-import logo from "./logo.svg"
+import DefaultScene from "./scene/defaultScene"
 
 function App() {
 	return (
-		<div className="App">
-			<header className="bg-purple-300">
-				<img src={logo} className="App-logo" alt="logo" />
-				<p>
-					Edit <code>src/App.tsx</code> and save to reload. Chris says hi
-				</p>
-				<a
-					className="App-link"
-					href="https://reactjs.org"
-					target="_blank"
-					rel="noopener noreferrer"
-				>
-					Learn React
-				</a>
-			</header>
+		<div className="w-screen h-screen">
+			<Canvas>
+				<DefaultScene />
+			</Canvas>
 		</div>
 	)
 }
