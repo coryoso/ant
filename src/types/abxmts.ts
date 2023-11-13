@@ -1,19 +1,21 @@
 import { AgentSystem } from "../store/environment"
 
-export interface Behaviour {
-	preExecute: () => void
-	execute: (agent: Agent, agentSystem: AgentSystem) => void
-	postExecute: () => void
+export abstract class Behaviour {
+	static behaviourName: () => string
+
+	preExecute() {}
+	execute(agent: Agent, agentSystem: AgentSystem) {}
+	postExecute() {}
 }
 
-export interface Agent {
-	id: string
+export abstract class Agent {
+	id!: string
 
-	preExecute: () => void
-	execute: (agentSystem: AgentSystem) => void
-	postExecute: () => void
+	preExecute() {}
+	execute(agentSystem: AgentSystem) {}
+	postExecute() {}
 
-	reset: () => void
+	reset() {}
 }
 
 // export interface AgentSystem {}

@@ -1,4 +1,4 @@
-import { Physics } from "@react-three/cannon"
+import { Debug, Physics } from "@react-three/cannon"
 import { Dodecahedron, Environment, OrbitControls } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
 import { useRef } from "react"
@@ -6,9 +6,9 @@ import { Vector3 } from "three"
 import AntAgentEntity from "../entities/antAgent"
 import Floor from "../entities/floor"
 import Platform from "../entities/platform"
-import { AntAgent, MoveBehaviour, useEnvironment } from "../store/environment"
+import { AntAgent, useEnvironment } from "../store/environment"
 
-const Agent_Limit = 10
+const Agent_Limit = 50
 const Spawn_Delay = 2
 
 const DefaultScene = () => {
@@ -16,21 +16,19 @@ const DefaultScene = () => {
 		state.agentSystems.map((system) => Object.values(system.agents)).flat(),
 	)
 	const execute = useEnvironment((state) => state.execute)
+	const spawnAgent = useEnvironment((state) => state.spawnAgent)
 	const lastSpawn = useRef<number>(0)
 
-	useFrame(({ clock }) => {
-		useEnvironment.setState((state) => {
-			if (
-				Object.values(state.agentSystems[0].agents).length < Agent_Limit &&
-				clock.elapsedTime - lastSpawn.current > Spawn_Delay
-			) {
-				lastSpawn.current = clock.elapsedTime
+	useFrame(({ clock }, delta) => {
+		if (
+			agents.length === 0 ||
+			(agents.length < Agent_Limit &&
+				clock.elapsedTime - lastSpawn.current > Spawn_Delay)
+		) {
+			lastSpawn.current = clock.elapsedTime
 
-				state.agentSystems[0].addAgent(
-					new AntAgent(new Vector3(-10, 2, 0), [new MoveBehaviour()]),
-				)
-			}
-		})
+			spawnAgent()
+		}
 
 		execute()
 	})
@@ -45,26 +43,33 @@ const DefaultScene = () => {
 			<OrbitControls enableDamping={false} />
 
 			<Physics>
-				<Floor />
+				<Debug>
+					<Floor />
 
-				<Platform position={new Vector3(-10, 0, 0)} />
-				<Platform position={new Vector3(10, 0, 0)} />
+					<Platform position={new Vector3(-15, 0, 0)} />
+					<Platform position={new Vector3(15, 0, 0)} />
 
-				{/*Obstacles*/}
-				<Dodecahedron position={[-5, 2.5, 0]} castShadow>
-					<meshStandardMaterial color="hotpink" />
-				</Dodecahedron>
-				<Dodecahedron position={[5, -2.5, 0]} castShadow>
-					<meshStandardMaterial color="hotpink" />
-				</Dodecahedron>
+					{/*Obstacles*/}
+					<Dodecahedron position={[-5, 2.5, 0]} castShadow>
+						<meshStandardMaterial color="hotpink" />
+					</Dodecahedron>
+					<Dodecahedron position={[5, -2.5, 0]} castShadow>
+						<meshStandardMaterial color="hotpink" />
+					</Dodecahedron>
 
-				{agents.map((agent) => (
-					<AntAgentEntity
-						key={agent.id}
-						id={agent.id}
-						position={(agent as AntAgent).position}
-					/>
-				))}
+					{agents.map((agent) => (
+						<AntAgentEntity
+							key={agent.id}
+							id={agent.id}
+							position={(agent as AntAgent).position}
+							// connectionUUID={(agent as AntAgent).connectionUUID}
+							// connectionCollision={(agent as AntAgent).connectionCollision}
+							attachPoint={(agent as AntAgent).attachPoint}
+							attachMeshUUID={(agent as AntAgent).attachMeshUUID}
+							intersections={(agent as AntAgent).intersections}
+						/>
+					))}
+				</Debug>
 			</Physics>
 		</>
 	)
