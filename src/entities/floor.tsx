@@ -6,6 +6,7 @@ const Floor = () => {
 	const [ref] = usePlane(
 		() => ({
 			mass: 0,
+			position: [0, -10, 0],
 			rotation: [-Math.PI / 2, 0, 0],
 			material: "floor",
 		}),

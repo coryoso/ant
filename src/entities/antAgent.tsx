@@ -10,7 +10,7 @@ const AntAgent = ({ position }: { position: Vector3 }) => {
 		() => ({
 			args: [Ant_Radius],
 			mass: 1,
-			position: [0, 10, 0],
+			position: position.toArray(),
 			material: "ant",
 		}),
 		useRef<Mesh>(null),
@@ -24,7 +24,7 @@ const AntAgent = ({ position }: { position: Vector3 }) => {
 
 	return (
 		<>
-			<mesh ref={ref}>
+			<mesh ref={ref} castShadow>
 				<sphereGeometry args={[Ant_Radius, 36, 36]} />
 				<meshPhysicalMaterial
 					color={"Yellow"}
