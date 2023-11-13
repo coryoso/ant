@@ -25,13 +25,16 @@ const DefaultScene = () => {
 			<pointLight position={[10, 10, 10]} />
 			<directionalLight position={[0, 10, 0]} intensity={0.5} />
 
+			{/*Init Position*/}
 			<Box position={[-10, 0, 0]}>
 				<meshStandardMaterial color="orange" />
 			</Box>
+			{/*End Position*/}
 			<Box position={[10, 0, 0]}>
 				<meshStandardMaterial color="green" />
 			</Box>
 
+			{/*Obstacles*/}
 			<Dodecahedron position={[-5, 2.5, 0]}>
 				<meshStandardMaterial color="hotpink" />
 			</Dodecahedron>

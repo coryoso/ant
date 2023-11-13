@@ -1,120 +1,242 @@
-import { Environment, OrbitControls } from "@react-three/drei"
+import { OrbitControls } from "@react-three/drei"
 import {
-	Debug,
 	Physics,
-	useSphere,
 	usePlane,
-	useTrimesh,
-	useContactMaterial,
+	useBox,
+	useLockConstraint,
+	useHingeConstraint,
 } from "@react-three/cannon"
-import { useFrame } from "@react-three/fiber"
+import { useSphere } from "@react-three/cannon"
+import { Perf } from "r3f-perf"
+import { ThreeElements } from "@react-three/fiber"
+import { BoxGeometry } from "three"
 
-import { useRef, useMemo } from "react"
-import { TorusGeometry } from "three"
-
-const numBalls = 100
-
-function Plane() {
+const rad = 0.5
+const boxL = 3
+function Ground(props: any) {
+	// @ts-ignore
 	const [ref] = usePlane(() => ({
-		material: "ground",
+		mass: 0,
 		rotation: [-Math.PI / 2, 0, 0],
+		...props,
 	}))
-
 	return (
 		// @ts-ignore
-		<mesh ref={ref} receiveShadow>
-			<planeGeometry args={[25, 25]} />
-			<meshStandardMaterial />
+		<mesh ref={ref} castShadow receiveShadow>
+			<planeGeometry args={[100, 100]} />
+			<meshStandardMaterial color={"#dddddd"} />
 		</mesh>
 	)
 }
 
-function TorusKnot() {
-	const geometry = useMemo(() => new TorusGeometry(0.75, 1, 0.75, 1), [])
-	const [ref] = useTrimesh(() => ({
-		args: [geometry.attributes.position.array, geometry.index!.array],
-		material: "ring",
-		position: [0, 1, 0],
-		rotation: [-Math.PI / 2, 0, 0],
+function Boxes(props: any) {
+	const [bb1] = useBox(() => ({
+		args: [1, 1, boxL],
+		position: [0, boxL, 0],
+		mass: 0,
+		...props,
 	}))
 
-	return (
-		// @ts-ignore
-		<mesh ref={ref} castShadow>
-			<torusGeometry />
-			<meshStandardMaterial />
-		</mesh>
-	)
-}
-
-function InstancedSpheres() {
-	const count = useRef(0)
-	const lastTime = useRef(0)
-
-	const [ref, { at }] = useSphere(() => ({
-		args: [0.25],
+	const [bb2] = useBox(() => ({
+		args: [1, 1, boxL],
+		position: [0, boxL, boxL + 0.1],
 		mass: 1,
-		position: [
-			Math.random() - 0.5 * 2,
-			Math.random() - 1000,
-			Math.random() - 0.5 * 2,
-		],
-		material: "bouncy",
+		...props,
 	}))
 
-	useFrame(({ clock }) => {
-		const time = clock.getElapsedTime()
-		if (time - lastTime.current > 0.25) {
-			const id = (count.current += 1) % numBalls
-			at(id).velocity.set(0, 0, 0)
-			at(id).angularVelocity.set(0, 0, 0)
-			at(id).position.set(
-				Math.random() - 0.5 * 2,
-				Math.random() * 2 + 5,
-				Math.random() - 0.5 * 2,
-			)
-			lastTime.current = time
-		}
+	useHingeConstraint(bb1, bb2, {
+		pivotA: [0, 0, boxL / 2],
+		pivotB: [boxL / 2, 0, 0],
+		collideConnected: true,
 	})
 
 	return (
-		<instancedMesh
-			// @ts-ignore
-			ref={ref}
-			args={[undefined, undefined, numBalls]}
-			castShadow
-			frustumCulled={false}
-		>
-			<sphereGeometry args={[0.25]} />
-			<meshStandardMaterial />
-		</instancedMesh>
+		<group>
+			<group>
+				{/* @ts-ignore */}
+				<mesh ref={bb1}>
+					<boxGeometry args={[1, 1, boxL]} />
+					<meshNormalMaterial />
+				</mesh>
+			</group>
+			<group>
+				{/* @ts-ignore */}
+
+				<mesh ref={bb2}>
+					<boxGeometry args={[1, 1, boxL]} />
+					<meshNormalMaterial />
+				</mesh>
+			</group>
+		</group>
 	)
 }
 
-function ContactMaterials() {
-	useContactMaterial("ground", "bouncy", {
-		restitution: 0.5,
-	})
-	useContactMaterial("ring", "bouncy", {
-		restitution: 0.45,
+function Balls(props: ThreeElements["mesh"]) {
+	const [b1] = useSphere(() => ({
+		args: [rad],
+		mass: 0,
+		position: [0, 10, 0],
+	}))
+
+	const [b2, api2] = useSphere(() => ({
+		args: [rad],
+		mass: 1,
+		position: [0, 10, -1],
+	}))
+
+	const [b3, api3] = useSphere(() => ({
+		args: [rad],
+		mass: 1,
+		position: [0, 10, -2],
+	}))
+
+	const [b4, api4] = useSphere(() => ({
+		args: [rad],
+		mass: 1,
+		position: [0, 10, -3],
+	}))
+
+	const [b5, api5] = useSphere(() => ({
+		args: [rad],
+		mass: 1,
+		position: [0, 10, -4],
+	}))
+
+	const [b6, api6] = useSphere(() => ({
+		args: [rad],
+		mass: 1,
+		position: [0, 10, -5],
+	}))
+
+	useLockConstraint(b1, b2, {
+		maxForce: 100,
 	})
 
-	return null
+	useLockConstraint(b2, b3, {})
+	useLockConstraint(b3, b4, {})
+	useLockConstraint(b4, b5, {})
+	useLockConstraint(b5, b6, {})
+	return (
+		<group>
+			<group>
+				{/* @ts-ignore */}
+				<mesh ref={b1}>
+					<sphereGeometry args={[rad, 36, 36]} />
+					<meshPhysicalMaterial
+						color={"Yellow"}
+						roughness={0.8}
+						clearcoat={1}
+						clearcoatRoughness={0.35}
+					/>
+				</mesh>
+			</group>
+
+			<group
+				onClick={() => {
+					api2.applyImpulse([3, 3, 3], [0, 0, 0])
+				}}
+			>
+				{/* @ts-ignore */}
+
+				<mesh ref={b2}>
+					<sphereGeometry args={[rad, 36, 36]} />
+					<meshPhysicalMaterial
+						color={"Yellow"}
+						roughness={0.8}
+						clearcoat={1}
+						clearcoatRoughness={0.35}
+					/>
+				</mesh>
+			</group>
+
+			<group
+				onClick={() => {
+					api3.applyImpulse([3, 3, 3], [0, 0, 0])
+				}}
+			>
+				{/* @ts-ignore */}
+
+				<mesh ref={b3}>
+					<sphereGeometry args={[rad, 36, 36]} />
+					<meshPhysicalMaterial
+						color={"Yellow"}
+						roughness={0.8}
+						clearcoat={1}
+						clearcoatRoughness={0.35}
+					/>
+				</mesh>
+			</group>
+			<group
+				onClick={() => {
+					api4.applyImpulse([3, 3, 3], [0, 0, 0])
+				}}
+			>
+				{/* @ts-ignore */}
+
+				<mesh ref={b4}>
+					<sphereGeometry args={[rad, 36, 36]} />
+					<meshPhysicalMaterial
+						color={"Yellow"}
+						roughness={0.8}
+						clearcoat={1}
+						clearcoatRoughness={0.35}
+					/>
+				</mesh>
+			</group>
+			<group
+				onClick={() => {
+					api5.applyImpulse([3, 3, 3], [0, 0, 0])
+				}}
+			>
+				{/* @ts-ignore */}
+
+				<mesh ref={b5}>
+					<sphereGeometry args={[rad, 36, 36]} />
+					<meshPhysicalMaterial
+						color={"Yellow"}
+						roughness={0.8}
+						clearcoat={1}
+						clearcoatRoughness={0.35}
+					/>
+				</mesh>
+			</group>
+			<group
+				onClick={() => {
+					api6.applyImpulse([3, 3, 3], [0, 0, 0])
+				}}
+			>
+				{/* @ts-ignore */}
+
+				<mesh ref={b6}>
+					<sphereGeometry args={[rad, 36, 36]} />
+					<meshPhysicalMaterial
+						color={"Yellow"}
+						roughness={0.8}
+						clearcoat={1}
+						clearcoatRoughness={0.35}
+					/>
+				</mesh>
+			</group>
+		</group>
+	)
 }
 
 const DefaultScene = () => {
 	return (
 		<>
-			<Environment preset="sunset" background />
-
+			<pointLight position={[0, 20, 0]} color={"Yellow"} intensity={1000} />
+			<spotLight
+				position={[-2.5, 5, 5]}
+				angle={Math.PI / 4}
+				penumbra={0.5}
+				castShadow
+			/>
 			<Physics>
-				<ContactMaterials />
-				<Debug color={0x004400}>
-					<Plane />
-					<TorusKnot />
-				</Debug>
-				<InstancedSpheres />
+				<Boxes />
+
+				<Ground />
 			</Physics>
+			<Perf position="top-right" style={{ margin: 10 }} />
 			<OrbitControls />
 		</>
 	)
