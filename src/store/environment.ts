@@ -8,12 +8,28 @@ import { Agent, Behaviour } from "../types/abxmts"
 export class MoveBehaviour implements Behaviour {
 	preExecute() {}
 
-	execute(agent: Agent) {
+	execute(agent: Agent, agentSystem: AgentSystem) {
 		const antAgent = agent as AntAgent
 
 		if (antAgent.physicsBody) {
 			antAgent.physicsBody.applyImpulse([0.1, 0, 0], [0, 0, 0])
 		}
+	}
+
+	postExecute() {}
+}
+
+export class HingeBehaviour implements Behaviour {
+	preExecute() {}
+
+	execute(agent: Agent, agentSystem: AgentSystem) {
+		const antAgent = agent as AntAgent
+
+		Object.values(agentSystem.agents).forEach((agent) => {
+			;(agent as AntAgent).physicsBody?.position.subscribe((a) =>
+				console.log(a),
+			)
+		})
 	}
 
 	postExecute() {}
@@ -31,7 +47,6 @@ export class AntAgent implements Agent {
 
 		this.startPosition = position
 		this.position = position.clone()
-
 		this._behaviours = behaviours
 	}
 
@@ -41,8 +56,10 @@ export class AntAgent implements Agent {
 
 	preExecute() {}
 
-	execute() {
-		this._behaviours.forEach((behaviour) => behaviour.execute(this))
+	execute(agentSystem: AgentSystem) {
+		this._behaviours.forEach((behaviour) =>
+			behaviour.execute(this, agentSystem),
+		)
 	}
 
 	postExecute() {}
@@ -62,7 +79,7 @@ export class AntAgent implements Agent {
 	}
 }
 
-class AgentSystem {
+export class AgentSystem {
 	agents: Record<string, Agent>
 
 	constructor(agents: Agent[] = []) {
@@ -90,7 +107,7 @@ class AgentSystem {
 	preExectue() {}
 
 	execute() {
-		Object.values(this.agents).forEach((agent) => agent.execute())
+		Object.values(this.agents).forEach((agent) => agent.execute(this))
 	}
 
 	postExecute() {}
@@ -114,7 +131,10 @@ export const useEnvironment = create(
 	immer<Environment>((set) => ({
 		agentSystems: [
 			new AgentSystem([
-				new AntAgent(new Vector3(0, 0, 0), [new MoveBehaviour()]),
+				new AntAgent(new Vector3(0, 0, 0), [
+					new MoveBehaviour(),
+					new HingeBehaviour(),
+				]),
 			]),
 		],
 
