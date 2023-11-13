@@ -3,6 +3,7 @@ import { useFrame } from "@react-three/fiber"
 import { useRef } from "react"
 import { Mesh, Vector3 } from "three"
 import { AntAgent, useEnvironment } from "../store/environment"
+import { AnimatedAnt } from "./animatedAnt"
 
 const Ant_Radius = 0.5
 
@@ -34,13 +35,15 @@ const AntAgentEntity = ({
 	return (
 		<>
 			<mesh ref={ref} castShadow>
-				<sphereGeometry args={[Ant_Radius, 36, 36]} />
+				<sphereGeometry args={[0.1, 36, 36]} />
 				<meshPhysicalMaterial
 					color={"Yellow"}
 					roughness={0.8}
 					clearcoat={1}
 					clearcoatRoughness={0.35}
 				/>
+
+				<AnimatedAnt />
 			</mesh>
 		</>
 	)
