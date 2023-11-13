@@ -1,3 +1,4 @@
+import { Physics } from "@react-three/cannon"
 import {
 	Box,
 	Dodecahedron,
@@ -5,16 +6,34 @@ import {
 	OrbitControls,
 } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
+import { useRef } from "react"
 import AntAgent from "../entities/antAgent"
-import { useEnvironment } from "../store/environment"
+import Floor from "../entities/floor"
+import { Agent, useEnvironment } from "../store/environment"
+
+const Agent_Limit = 10
+const Spawn_Delay = 2
 
 const DefaultScene = () => {
 	const agents = useEnvironment((state) =>
 		state.agentSystems.map((system) => system.agents).flat(),
 	)
 	const execute = useEnvironment((state) => state.execute)
+	const lastSpawn = useRef<number>(0)
 
 	useFrame(({ clock }) => {
+		useEnvironment.setState((state) => {
+			console.log(clock.elapsedTime - lastSpawn.current)
+			if (
+				state.agentSystems[0].agents.length < Agent_Limit &&
+				clock.elapsedTime - lastSpawn.current > Spawn_Delay
+			) {
+				lastSpawn.current = clock.elapsedTime
+
+				state.agentSystems[0].addAgent(new Agent())
+			}
+		})
+
 		execute()
 	})
 
@@ -44,9 +63,13 @@ const DefaultScene = () => {
 
 			<OrbitControls />
 
-			{agents.map((agent) => (
-				<AntAgent position={agent.position} />
-			))}
+			<Physics>
+				<Floor />
+
+				{agents.map((agent) => (
+					<AntAgent key={agent.id} position={agent.position} />
+				))}
+			</Physics>
 		</>
 	)
 }

@@ -1,15 +1,14 @@
-import { OrbitControls } from "@react-three/drei"
 import {
 	Physics,
-	usePlane,
 	useBox,
-	useLockConstraint,
 	useHingeConstraint,
+	useLockConstraint,
+	usePlane,
+	useSphere,
 } from "@react-three/cannon"
-import { useSphere } from "@react-three/cannon"
-import { Perf } from "r3f-perf"
+import { OrbitControls } from "@react-three/drei"
 import { ThreeElements } from "@react-three/fiber"
-import { BoxGeometry } from "three"
+import { Perf } from "r3f-perf"
 
 const rad = 0.5
 const boxL = 3
@@ -51,23 +50,20 @@ function Boxes(props: any) {
 	})
 
 	return (
-		<group>
-			<group>
-				{/* @ts-ignore */}
-				<mesh ref={bb1}>
-					<boxGeometry args={[1, 1, boxL]} />
-					<meshNormalMaterial />
-				</mesh>
-			</group>
-			<group>
-				{/* @ts-ignore */}
+		<>
+			{/* @ts-ignore */}
+			<mesh ref={bb1}>
+				<boxGeometry args={[1, 1, boxL]} />
+				<meshNormalMaterial />
+			</mesh>
 
-				<mesh ref={bb2}>
-					<boxGeometry args={[1, 1, boxL]} />
-					<meshNormalMaterial />
-				</mesh>
-			</group>
-		</group>
+			{/* @ts-ignore */}
+
+			<mesh ref={bb2}>
+				<boxGeometry args={[1, 1, boxL]} />
+				<meshNormalMaterial />
+			</mesh>
+		</>
 	)
 }
 

@@ -1,12 +1,16 @@
 import { Vector3 } from "three"
+import { v4 } from "uuid"
 import { create } from "zustand"
 import { immer } from "zustand/middleware/immer"
 
-class Agent {
+export class Agent {
+	private _id: string
 	private startPosition: Vector3
 	position: Vector3
 
 	constructor(position: Vector3 = new Vector3()) {
+		this._id = v4()
+
 		this.startPosition = position
 		this.position = position.clone()
 	}
@@ -24,23 +28,25 @@ class Agent {
 	}
 
 	postExecute() {}
+
+	get id() {
+		return this._id
+	}
 }
-
-type Behavior = () => void
-
-const MoveBehavior: Behavior = () => {
-	console.log("hi")
-}
-
-// interface MoveBehaviour extends Behaviour { }
-
-const _Agent = (behaviors: Behavior[], lastStep: any) => {}
 
 class AgentSystem {
 	agents: Agent[]
 
 	constructor(agents: Agent[] = []) {
 		this.agents = agents
+	}
+
+	addAgent(agent: Agent) {
+		this.agents.push(agent)
+	}
+
+	removeAgent(agent: Agent) {
+		this.agents = this.agents.filter((a) => a !== agent)
 	}
 
 	reset() {

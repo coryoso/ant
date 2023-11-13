@@ -1,6 +1,6 @@
 import { Canvas } from "@react-three/fiber"
 import "./App.css"
-import DefaultScene from "./scene/adding_agents"
+import DefaultScene from "./scene/defaultScene"
 
 function App() {
 	return (
