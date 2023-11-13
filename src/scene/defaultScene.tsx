@@ -3,17 +3,17 @@ import { Dodecahedron, Environment, OrbitControls } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
 import { useRef } from "react"
 import { Vector3 } from "three"
-import AntAgent from "../entities/antAgent"
+import AntAgentEntity from "../entities/antAgent"
 import Floor from "../entities/floor"
 import Platform from "../entities/platform"
-import { Agent, useEnvironment } from "../store/environment"
+import { AntAgent, MoveBehaviour, useEnvironment } from "../store/environment"
 
 const Agent_Limit = 10
 const Spawn_Delay = 2
 
 const DefaultScene = () => {
 	const agents = useEnvironment((state) =>
-		state.agentSystems.map((system) => system.agents).flat(),
+		state.agentSystems.map((system) => Object.values(system.agents)).flat(),
 	)
 	const execute = useEnvironment((state) => state.execute)
 	const lastSpawn = useRef<number>(0)
@@ -21,12 +21,14 @@ const DefaultScene = () => {
 	useFrame(({ clock }) => {
 		useEnvironment.setState((state) => {
 			if (
-				state.agentSystems[0].agents.length < Agent_Limit &&
+				Object.values(state.agentSystems[0].agents).length < Agent_Limit &&
 				clock.elapsedTime - lastSpawn.current > Spawn_Delay
 			) {
 				lastSpawn.current = clock.elapsedTime
 
-				state.agentSystems[0].addAgent(new Agent(new Vector3(-10, 2, 0)))
+				state.agentSystems[0].addAgent(
+					new AntAgent(new Vector3(-10, 2, 0), [new MoveBehaviour()]),
+				)
 			}
 		})
 
@@ -57,7 +59,11 @@ const DefaultScene = () => {
 				</Dodecahedron>
 
 				{agents.map((agent) => (
-					<AntAgent key={agent.id} position={agent.position} />
+					<AntAgentEntity
+						key={agent.id}
+						id={agent.id}
+						position={(agent as AntAgent).position}
+					/>
 				))}
 			</Physics>
 		</>

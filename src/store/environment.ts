@@ -1,18 +1,38 @@
+import { PublicApi } from "@react-three/cannon"
 import { Vector3 } from "three"
 import { v4 } from "uuid"
 import { create } from "zustand"
 import { immer } from "zustand/middleware/immer"
+import { Agent, Behaviour } from "../types/abxmts"
 
-export class Agent {
+export class MoveBehaviour implements Behaviour {
+	preExecute() {}
+
+	execute(agent: Agent) {
+		const antAgent = agent as AntAgent
+
+		if (antAgent.physicsBody) {
+			antAgent.physicsBody.applyImpulse([0.1, 0, 0], [0, 0, 0])
+		}
+	}
+
+	postExecute() {}
+}
+
+export class AntAgent implements Agent {
 	private _id: string
 	private startPosition: Vector3
 	position: Vector3
+	private _physicsBody: PublicApi | undefined = undefined
+	private _behaviours: Behaviour[]
 
-	constructor(position: Vector3 = new Vector3()) {
+	constructor(position: Vector3 = new Vector3(), behaviours: Behaviour[] = []) {
 		this._id = v4()
 
 		this.startPosition = position
 		this.position = position.clone()
+
+		this._behaviours = behaviours
 	}
 
 	reset() {
@@ -22,9 +42,7 @@ export class Agent {
 	preExecute() {}
 
 	execute() {
-		this.position.x += 0.01
-
-		return this
+		this._behaviours.forEach((behaviour) => behaviour.execute(this))
 	}
 
 	postExecute() {}
@@ -32,33 +50,47 @@ export class Agent {
 	get id() {
 		return this._id
 	}
+
+	set physicsBody(body: PublicApi | undefined) {
+		if (this._physicsBody !== body) {
+			this._physicsBody = body
+		}
+	}
+
+	get physicsBody(): PublicApi | undefined {
+		return this._physicsBody
+	}
 }
 
 class AgentSystem {
-	agents: Agent[]
+	agents: Record<string, Agent>
 
 	constructor(agents: Agent[] = []) {
-		this.agents = agents
+		this.agents = agents.reduce(
+			(acc, agent) => {
+				acc[agent.id] = agent
+				return acc
+			},
+			{} as Record<string, Agent>,
+		)
 	}
 
 	addAgent(agent: Agent) {
-		this.agents.push(agent)
+		this.agents[agent.id] = agent
 	}
 
 	removeAgent(agent: Agent) {
-		this.agents = this.agents.filter((a) => a !== agent)
+		delete this.agents[agent.id]
 	}
 
 	reset() {
-		this.agents.forEach((agent) => agent.reset())
+		Object.values(this.agents).forEach((agent) => agent.reset())
 	}
 
 	preExectue() {}
 
 	execute() {
-		this.agents = this.agents.map((agent) => agent.execute())
-
-		return this
+		Object.values(this.agents).forEach((agent) => agent.execute())
 	}
 
 	postExecute() {}
@@ -80,7 +112,11 @@ interface Environment {
 
 export const useEnvironment = create(
 	immer<Environment>((set) => ({
-		agentSystems: [new AgentSystem([new Agent(new Vector3(0, 0, 0))])],
+		agentSystems: [
+			new AgentSystem([
+				new AntAgent(new Vector3(0, 0, 0), [new MoveBehaviour()]),
+			]),
+		],
 
 		state: EnvironmentState.Idle,
 

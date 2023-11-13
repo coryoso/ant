@@ -2,10 +2,17 @@ import { useSphere } from "@react-three/cannon"
 import { useFrame } from "@react-three/fiber"
 import { useRef } from "react"
 import { Mesh, Vector3 } from "three"
+import { AntAgent, useEnvironment } from "../store/environment"
 
 const Ant_Radius = 0.5
 
-const AntAgent = ({ position }: { position: Vector3 }) => {
+const AntAgentEntity = ({
+	position,
+	id,
+}: {
+	position: Vector3
+	id: string
+}) => {
 	const [ref, body] = useSphere(
 		() => ({
 			args: [Ant_Radius],
@@ -17,8 +24,10 @@ const AntAgent = ({ position }: { position: Vector3 }) => {
 	)
 
 	useFrame(() => {
-		body.applyImpulse([0.1, 0, 0], [0, 0, 0])
-		if (ref.current) {
+		if (body) {
+			useEnvironment.setState((state) => {
+				;(state.agentSystems[0].agents[id] as AntAgent).physicsBody = body
+			})
 		}
 	})
 
@@ -37,4 +46,4 @@ const AntAgent = ({ position }: { position: Vector3 }) => {
 	)
 }
 
-export default AntAgent
+export default AntAgentEntity
