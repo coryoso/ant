@@ -3,13 +3,14 @@ import {
 	useSphere,
 	useSpring,
 } from "@react-three/cannon"
-import { Box } from "@react-three/drei"
+import { Line } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
 import { MutableRefObject, useEffect, useRef, useState } from "react"
-import { BufferGeometry, Mesh, Vector3 } from "three"
-import { Geometry } from "three-stdlib"
+import { BufferGeometry, DoubleSide, Mesh, Vector3 } from "three"
+import { Geometry, Line2 } from "three-stdlib"
 import { useAnimationStore } from "../store/animation"
-import { AntAgent, useEnvironment } from "../store/environment"
+import { AntAgent, BodyRefType, useEnvironment } from "../store/environment"
+import { AnimatedAnt } from "./animatedAnt"
 
 const Ant_Radius = 0.5
 
@@ -28,22 +29,18 @@ function toConvexProps(
 }
 
 const AntAgentEntity = ({
-	prevVelocity,
 	position,
 	id,
-	// connectionCollision,
-	attachPoint,
-	attachMeshUUID,
-	intersections,
+	attachPoints,
+	attachMeshUUIDs,
 }: {
-	prevVelocity: Vector3
 	position: Vector3
 	id: string
-	// connectionCollision: CollideEvent | undefined
-	attachPoint: Vector3 | undefined
-	attachMeshUUID: string | undefined
-	intersections: Vector3[]
+	attachPoints: Vector3[]
+	attachMeshUUIDs: string[]
 }) => {
+	const lineARef = useRef<Line2>(null)
+	const lineBRef = useRef<Line2>(null)
 	// const args = useMemo(() => {
 	// 	const geometry = new SphereGeometry(0.5, 32, 16)
 	// 	// const geometry = new SphereGeometry(0.5, 32, 16)
@@ -101,24 +98,33 @@ const AntAgentEntity = ({
 	useEffect(() => {
 		if (ref.current) {
 			useEnvironment.setState((state) => {
+				state.bodyTypes[ref.current!.uuid] = BodyRefType.Ant
 				state.bodyRefs[ref.current!.uuid] = ref
+				state.meshUUIDsToBodies[ref.current!.uuid] = id
 			})
 		}
-	}, [position, ref])
+	}, [position, ref, id])
 
-	const [connectionRef, setConnectionRef] =
+	const [connectionRefA, setConnectionRefA] =
+		useState<MutableRefObject<Mesh | null> | null>(null)
+	const [connectionRefB, setConnectionRefB] =
 		useState<MutableRefObject<Mesh | null> | null>(null)
 	const anchor = useRef<Vector3 | undefined>(undefined)
 
 	useEffect(() => {
-		if (attachMeshUUID && attachPoint) {
-			const ref = useEnvironment.getState().bodyRefs[attachMeshUUID]
-			setConnectionRef(ref)
+		if (attachMeshUUIDs.length > 0 && attachPoints.length > 0) {
+			const ref = useEnvironment.getState().bodyRefs[attachMeshUUIDs[0]]
+			setConnectionRefA(ref)
 
-			anchor.current = attachPoint
+			if (attachMeshUUIDs.length > 1) {
+				const ref = useEnvironment.getState().bodyRefs[attachMeshUUIDs[1]]
+				setConnectionRefB(ref)
+			}
+
+			// anchor.current = attachPoint
 			// anchor.current = new Vector3(...connectionCollision.contact.bj.)
 		}
-	}, [attachPoint, attachMeshUUID])
+	}, [attachPoints, attachMeshUUIDs])
 	// let ref = useRef()
 	// useEffect(() => {
 	// 	if (shouldConnect&&lastCollide) {
@@ -128,21 +134,28 @@ const AntAgentEntity = ({
 
 	useSpring(
 		ref,
-		connectionRef,
+		connectionRefA,
 		{
-			worldAnchorB: attachPoint ? attachPoint!.toArray() : undefined,
-			// worldAnchorB: attachPoint?  : undefined,
-			// worldAnchorA: connectionCollision
-			// 	? connectionCollision.contact.bi.position.toArray()
-			// 	: undefined,
-			// worldAnchorB: connectionCollision
-			// 	? connectionCollision.contact.bi.position.toArray()
-			// 	: undefined,
+			worldAnchorB:
+				attachPoints.length > 0 ? attachPoints[0]!.toArray() : undefined,
 			damping: 1,
 			stiffness: 150,
 			restLength: 0.05,
 		},
-		[connectionRef],
+		[connectionRefA],
+	)
+
+	useSpring(
+		ref,
+		connectionRefB,
+		{
+			worldAnchorB:
+				attachPoints.length > 1 ? attachPoints[1]!.toArray() : undefined,
+			damping: 1,
+			stiffness: 150,
+			restLength: 0.05,
+		},
+		[connectionRefB],
 	)
 
 	const { mixer } = useAnimationStore((state) => state)
@@ -151,32 +164,89 @@ const AntAgentEntity = ({
 		if (mixer) {
 			mixer.update(delta)
 		}
-	})
-	//useLockConstraint(ref, connectionRef, { maxForce: 1e6 }, [connectionRef])
 
-	// useHingeConstraint(
-	// 	ref,
-	// 	connectionRef,
-	// 	{
-	// 		pivotB: attachPoint ? attachPoint!.toArray() : undefined,
-	// 		axisA: [0, 0, 1],
-	// 		axisB: [0, 0, 1],
-	// 	},
-	// 	[connectionRef],
-	// )
-	// useLockConstraint(ref, connectionRef, { maxForce: 1 }, [connectionRef])
+		// const agents = useEnvironment.getState().agentSystems[0].agents as Record<
+		// 	string,
+		// 	AntAgent
+		// >
+		// const meshUUIDsToBodies = useEnvironment.getState().meshUUIDsToBodies
+
+		// if (lineARef.current) {
+		// 	const id = meshUUIDsToBodies[attachMeshUUIDs[0]]
+		// 	let positionB: Vector3 | undefined = undefined
+		// 	if (id.includes(",")) {
+		// 		positionB = new Vector3(...id.split(",").map((v) => parseFloat(v)))
+		// 	} else {
+		// 		positionB = agents[meshUUIDsToBodies[attachMeshUUIDs[0]]].position
+		// 	}
+		// 	if (positionB) {
+		// 		lineARef.current.geometry.setPositions(
+		// 			[position.toArray(), positionB.toArray()].flatMap((v) => v),
+		// 		)
+		// 	}
+		// }
+
+		// if (lineBRef.current) {
+		// 	const id = meshUUIDsToBodies[attachMeshUUIDs[1]]
+		// 	let positionB: Vector3 | undefined = undefined
+		// 	if (id.includes(",")) {
+		// 		positionB = new Vector3(...id.split(",").map((v) => parseFloat(v)))
+		// 	} else {
+		// 		positionB = agents[meshUUIDsToBodies[attachMeshUUIDs[0]]].position
+		// 	}
+		// 	if (positionB) {
+		// 		lineBRef.current.geometry.setPositions(
+		// 			[position.toArray(), positionB.toArray()].flatMap((v) => v),
+		// 		)
+		// 	}
+		// }
+	})
 
 	return (
 		<>
 			<mesh ref={ref} castShadow>
-				<sphereGeometry args={[Ant_Radius, 36, 36]} />
-				{/* <AnimatedAnt position={[-0.1, -0.1, 0]} /> */}
+				<sphereGeometry args={[0.5, 32, 16]} />
+				<meshPhysicalMaterial
+					color={0xffffff}
+					transmission={1}
+					side={DoubleSide}
+					opacity={1}
+					metalness={0}
+					roughness={0}
+					thickness={0.2}
+					transparent
+				/>
+
+				{/* <MeshTransmissionMaterial
+					backside
+					samples={4}
+					thickness={0.2}
+					distortionScale={0}
+					temporalDistortion={0}
+				/> */}
+
+				<AnimatedAnt position={[-0.05, -0.05, 0]} scale={6} />
 			</mesh>
 
-			{attachPoint && (
-				<Box args={[0.1, 0.1, 1]} position={anchor.current}>
-					<meshStandardMaterial color="hotpink" />
-				</Box>
+			{attachPoints.length > 0 && attachPoints[0] && (
+				<Line
+					points={[position, attachPoints[0].toArray()]}
+					color="black"
+					lineWidth={1}
+					segments
+					dashed={false}
+					ref={lineARef}
+				/>
+			)}
+			{attachPoints.length > 1 && attachPoints[1] && (
+				<Line
+					points={[position, attachPoints[1].toArray()]}
+					color="black"
+					lineWidth={1}
+					segments
+					dashed={false}
+					ref={lineBRef}
+				/>
 			)}
 		</>
 	)

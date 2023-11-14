@@ -2,7 +2,7 @@ import { useBox } from "@react-three/cannon"
 
 import { useEffect, useRef } from "react"
 import { Mesh, Vector3 } from "three"
-import { useEnvironment } from "../store/environment"
+import { BodyRefType, useEnvironment } from "../store/environment"
 
 const Platform = ({ position, size }: { position: Vector3; size: Vector3 }) => {
 	const [ref] = useBox(
@@ -19,6 +19,10 @@ const Platform = ({ position, size }: { position: Vector3; size: Vector3 }) => {
 		if (ref.current) {
 			useEnvironment.setState((state) => {
 				state.bodyRefs[ref.current!.uuid] = ref
+				state.bodyTypes[ref.current!.uuid] = BodyRefType.Platform
+				state.meshUUIDsToBodies[ref.current!.uuid] = position
+					.toArray()
+					.join(",")
 			})
 		}
 	}, [position, ref])

@@ -1,20 +1,16 @@
-import { Debug, Physics } from "@react-three/cannon"
-import { Dodecahedron, Environment, OrbitControls } from "@react-three/drei"
+import { Physics } from "@react-three/cannon"
+import { Environment, OrbitControls } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
 import { useRef } from "react"
-import { Vector3 } from "three"
 import AntAgentEntity from "../entities/antAgent"
-import Floor from "../entities/floor"
-import Platform from "../entities/platform"
 import { AntAgent, useEnvironment } from "../store/environment"
 
-import Scene3FarWithObjs from "../entities/Scene3FarWithObjs"
 import Scene1Close from "../entities/Scene1Close"
 import Scene2Far from "../entities/Scene2Far"
 import { FallenTree } from "../entities/fallenTree"
 
 const Agent_Limit = 50
-const Spawn_Delay = 1
+const Spawn_Delay = 3
 
 const DefaultScene = () => {
 	const agents = useEnvironment((state) =>
@@ -58,12 +54,11 @@ const DefaultScene = () => {
 						position={(agent as AntAgent).position}
 						// connectionUUID={(agent as AntAgent).connectionUUID}
 						// connectionCollision={(agent as AntAgent).connectionCollision}
-						attachPoint={(agent as AntAgent).attachPoint}
-						attachMeshUUID={(agent as AntAgent).attachMeshUUID}
-						intersections={(agent as AntAgent).intersections}
-						prevVelocity={(agent as AntAgent).prevVelocity}
+						attachPoints={(agent as AntAgent).attachPoints}
+						attachMeshUUIDs={(agent as AntAgent).attachMeshUUIDs}
 					/>
 				))}
+				{/* </Debug> */}
 			</Physics>
 		</>
 	)
