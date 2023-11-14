@@ -35,7 +35,7 @@ export class MoveBehaviour extends Behaviour {
 
 		if (antAgent.physicsBody && !this.paused) {
 			antAgent.physicsBody.angularDamping.set(0.6)
-			//antAgent.physicsBody.angularFactor.set(0, 0, 0)
+			// antAgent.physicsBody.angularFactor.set(0, 0, 0)
 
 			antAgent.physicsBody.applyImpulse([0.3, 0, 0], [0, 0, 0])
 			//antAgent.physicsBody.applyTorque([0, 0, -0.5])
@@ -170,6 +170,9 @@ export class AntAgent implements Agent {
 		Object.values(this._behaviours).forEach((behaviour) =>
 			behaviour.execute(this, agentSystem),
 		)
+
+		if (this.prevVelocity.distanceToSquared(this.velocity)) {
+		}
 	}
 
 	postExecute() {}

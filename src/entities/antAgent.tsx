@@ -1,14 +1,15 @@
 import {
 	ConvexPolyhedronProps,
-	useConvexPolyhedron,
+	useSphere,
 	useSpring,
 } from "@react-three/cannon"
 import { Box } from "@react-three/drei"
-import { MutableRefObject, useEffect, useMemo, useRef, useState } from "react"
-import { BufferGeometry, Mesh, SphereGeometry, Vector3 } from "three"
+import { useFrame } from "@react-three/fiber"
+import { MutableRefObject, useEffect, useRef, useState } from "react"
+import { BufferGeometry, Mesh, Vector3 } from "three"
 import { Geometry } from "three-stdlib"
+import { useAnimationStore } from "../store/animation"
 import { AntAgent, useEnvironment } from "../store/environment"
-import { AnimatedAnt } from "./animatedAnt"
 
 function toConvexProps(
 	bufferGeometry: BufferGeometry,
@@ -41,17 +42,19 @@ const AntAgentEntity = ({
 	attachMeshUUID: string | undefined
 	intersections: Vector3[]
 }) => {
-	const args = useMemo(() => {
-		const geometry = new SphereGeometry(0.5, 32, 16)
-		geometry.scale(1, 0.35, 0.8)
-		return toConvexProps(geometry)
-	}, [])
+	// const args = useMemo(() => {
+	// 	const geometry = new SphereGeometry(0.5, 32, 16)
+	// 	// const geometry = new SphereGeometry(0.5, 32, 16)
+	// 	// geometry.scale(1, 0.35, 0.8)
+	// 	return toConvexProps(geometry)
+	// }, [])
 
 	// const [ref] = useConvexPolyhedron(() => ({ args, mass: 100, position, rotation }), useRef<Mesh>(null))
 
-	const [ref, body] = useConvexPolyhedron(
+	const [ref, body] = useSphere(
 		() => ({
-			args, //: [Ant_Radius],
+			args: [0.5],
+			// args, //: [Ant_Radius],
 
 			mass: 1,
 			position: position.toArray(),
@@ -140,6 +143,13 @@ const AntAgentEntity = ({
 		[connectionRef],
 	)
 
+	const { mixer } = useAnimationStore((state) => state)
+
+	useFrame((_, delta) => {
+		if (mixer) {
+			mixer.update(delta)
+		}
+	})
 	//useLockConstraint(ref, connectionRef, { maxForce: 1e6 }, [connectionRef])
 
 	// useHingeConstraint(
@@ -157,7 +167,7 @@ const AntAgentEntity = ({
 	return (
 		<>
 			<mesh ref={ref} castShadow>
-				<AnimatedAnt position={[-0.1, -0.1, 0]} />
+				{/* <AnimatedAnt position={[-0.1, -0.1, 0]} /> */}
 			</mesh>
 
 			{attachPoint && (

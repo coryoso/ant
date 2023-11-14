@@ -24,6 +24,7 @@ const AntAnimationScene = () => {
 						attachPoint={undefined}
 						intersections={[]}
 						attachMeshUUID={undefined}
+						prevVelocity={new Vector3(0, 0, 0)}
 					/>
 				</Debug>
 			</Physics>

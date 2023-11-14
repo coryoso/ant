@@ -7,10 +7,11 @@ Source: https://sketchfab.com/3d-models/medhue-ants-81c5df27431543818a2be3604abd
 Title: Medhue Ants
 */
 
-import { useAnimations, useGLTF } from "@react-three/drei"
-import React, { useRef } from "react"
+import { useGLTF } from "@react-three/drei"
+import React, { useEffect, useRef } from "react"
 import * as THREE from "three"
 import { GLTF } from "three-stdlib"
+import { useAnimationStore } from "../store/animation"
 
 type GLTFResult = GLTF & {
 	nodes: {
@@ -22,7 +23,7 @@ type GLTFResult = GLTF & {
 	}
 }
 
-type ActionName =
+export type ActionName =
 	| "Ant_Rig|Idle1"
 	| "Ant_Rig|Attack"
 	| "Ant_Rig|Dead"
@@ -43,18 +44,41 @@ type ContextType = Record<
 	>
 >
 
-export function AnimatedAnt(props: JSX.IntrinsicElements["group"]) {
+export function AnimatedAnt(props: JSX.IntrinsicElements["group"] & {}) {
 	const group = useRef<THREE.Group>(null)
 	const { nodes, materials, animations } = useGLTF(
 		"/ant/scene.gltf",
 	) as GLTFResult
 	// @ts-ignore
-	const { actions } = useAnimations<GLTFActions>(animations, group)
+	// const { actanions } = useAnimations<GLTFActions>(animations, group)
 
-	React.useEffect(() => {
-		// @ts-ignore
-		actions["Ant_Rig|Walk"].play()
-	}, [actions])
+	const { actions, mixer, setupMixer } = useAnimationStore((state) => state)
+
+	useEffect(() => {
+		if (group.current) {
+			// setupMixer(group.current)
+		}
+	}, [setupMixer])
+
+	useEffect(() => {
+		if (mixer && group.current) {
+			actions["idle"] = mixer.clipAction(
+				animations.filter(({ name }) => name === "Ant_Rig|Idle2")[0],
+				group.current,
+			)
+			actions["walk"] = mixer.clipAction(
+				animations.filter(({ name }) => name === "Ant_Rig|Walk")[0],
+				group.current,
+			)
+
+			actions["idle"].play()
+		}
+	}, [actions, mixer, animations])
+
+	// React.useEffect(() => {
+	// 	// @ts-ignore
+	// 	actions["Ant_Rig|Walk"].play()
+	// }, [actions])
 
 	return (
 		<group

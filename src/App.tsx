@@ -1,6 +1,6 @@
 import { Canvas } from "@react-three/fiber"
 import "./App.css"
-import AntAnimationScene from "./scene/antAnimation"
+import DefaultScene from "./scene/defaultScene"
 
 function App() {
 	return (
@@ -8,7 +8,8 @@ function App() {
 			<Canvas camera-position-z={40} camera-far={100} shadows>
 				<color attach="background" args={["#202025"]} />
 
-				<AntAnimationScene />
+				{/* <AntAnimationScene /> */}
+				<DefaultScene />
 			</Canvas>
 		</div>
 	)
