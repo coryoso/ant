@@ -1,16 +1,28 @@
 import {
-	useSphere,
+	ConvexPolyhedronProps,
+	useConvexPolyhedron,
 	useSpring,
-	useLockConstraint,
-	usePointToPointConstraint,
 } from "@react-three/cannon"
 import { Box } from "@react-three/drei"
-import { MutableRefObject, useEffect, useRef, useState } from "react"
-import { Mesh, Vector3 } from "three"
+import { MutableRefObject, useEffect, useMemo, useRef, useState } from "react"
+import { BufferGeometry, Mesh, SphereGeometry, Vector3 } from "three"
+import { Geometry } from "three-stdlib"
 import { AntAgent, useEnvironment } from "../store/environment"
 import { AnimatedAnt } from "./animatedAnt"
 
-const Ant_Radius = 0.5
+function toConvexProps(
+	bufferGeometry: BufferGeometry,
+): ConvexPolyhedronProps["args"] {
+	const geo = new Geometry().fromBufferGeometry(bufferGeometry)
+	// Merge duplicate vertices resulting from glTF export.
+	// Cannon assumes contiguous, closed meshes to work
+	geo.mergeVertices()
+	return [
+		geo.vertices.map((v) => [v.x, v.y, v.z]),
+		geo.faces.map((f) => [f.a, f.b, f.c]),
+		[],
+	]
+}
 
 const AntAgentEntity = ({
 	prevVelocity,
@@ -29,9 +41,18 @@ const AntAgentEntity = ({
 	attachMeshUUID: string | undefined
 	intersections: Vector3[]
 }) => {
-	const [ref, body] = useSphere(
+	const args = useMemo(() => {
+		const geometry = new SphereGeometry(0.5, 32, 16)
+		geometry.scale(1, 0.35, 0.8)
+		return toConvexProps(geometry)
+	}, [])
+
+	// const [ref] = useConvexPolyhedron(() => ({ args, mass: 100, position, rotation }), useRef<Mesh>(null))
+
+	const [ref, body] = useConvexPolyhedron(
 		() => ({
-			args: [Ant_Radius],
+			args, //: [Ant_Radius],
+
 			mass: 1,
 			position: position.toArray(),
 			material: "ant",
@@ -45,12 +66,16 @@ const AntAgentEntity = ({
 			// },
 			onCollideBegin(e) {
 				useEnvironment.setState((state) => {
-					;(state.agentSystems[0].agents[id] as AntAgent).addCollision()
+					if (state.agentSystems[0].agents[id] as AntAgent) {
+						;(state.agentSystems[0].agents[id] as AntAgent).addCollision()
+					}
 				})
 			},
 			onCollideEnd(e) {
 				useEnvironment.setState((state) => {
-					;(state.agentSystems[0].agents[id] as AntAgent).removeCollision()
+					if (state.agentSystems[0].agents[id] as AntAgent) {
+						;(state.agentSystems[0].agents[id] as AntAgent).removeCollision()
+					}
 				})
 			},
 		}),
@@ -59,11 +84,13 @@ const AntAgentEntity = ({
 
 	useEffect(() => {
 		useEnvironment.setState((state) => {
-			;(state.agentSystems[0].agents[id] as AntAgent).physicsBody = body
-			;(state.agentSystems[0].agents[id] as AntAgent).meshUUID =
-				ref.current!.uuid
+			if (state.agentSystems[0].agents[id] as AntAgent) {
+				;(state.agentSystems[0].agents[id] as AntAgent).physicsBody = body
+				;(state.agentSystems[0].agents[id] as AntAgent).meshUUID =
+					ref.current!.uuid
+			}
 		})
-	}, [id, body])
+	}, [id, body, ref])
 
 	// TODO: remove
 	useEffect(() => {
@@ -130,15 +157,7 @@ const AntAgentEntity = ({
 	return (
 		<>
 			<mesh ref={ref} castShadow>
-				<sphereGeometry args={[Ant_Radius, 36, 36]} />
-				<meshPhysicalMaterial
-					color={"Yellow"}
-					roughness={0.8}
-					clearcoat={1}
-					clearcoatRoughness={0.35}
-				/>
-
-				{/* <AnimatedAnt /> */}
+				<AnimatedAnt position={[-0.1, -0.1, 0]} />
 			</mesh>
 
 			{attachPoint && (
@@ -146,12 +165,6 @@ const AntAgentEntity = ({
 					<meshStandardMaterial color="hotpink" />
 				</Box>
 			)}
-
-			{/* {intersections.map((intersection) => (
-				<Box args={[0.1, 0.1, 0.1]} position={intersection}>
-					<meshStandardMaterial color="hotpink" />
-				</Box>
-			))} */}
 		</>
 	)
 }
