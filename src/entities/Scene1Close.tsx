@@ -1,7 +1,6 @@
 import { Vector3 } from "three"
 import Floor from "./floor"
 import Platform from "./platform"
-import { Debug } from "@react-three/cannon"
 
 const Scene1Close = () => {
 	return (
