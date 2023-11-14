@@ -167,6 +167,8 @@ const AntAgentEntity = ({
 	return (
 		<>
 			<mesh ref={ref} castShadow>
+				<sphereGeometry args={[0.5, 32, 16]} />
+				<meshStandardMaterial opacity={0} transparent />
 				{/* <AnimatedAnt position={[-0.1, -0.1, 0]} /> */}
 			</mesh>
 
