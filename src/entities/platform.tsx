@@ -26,7 +26,7 @@ const Platform = ({ position, size }: { position: Vector3; size: Vector3 }) => {
 	return (
 		<mesh ref={ref}>
 			<boxGeometry args={size.toArray()} />
-			<meshNormalMaterial />
+			<meshNormalMaterial opacity={0} transparent={true} />
 		</mesh>
 	)
 }
