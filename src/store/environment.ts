@@ -124,6 +124,29 @@ export class HingeBehaviour extends Behaviour {
 	postExecute() {}
 }
 
+export class GoalBehavior extends Behaviour {
+	static behaviourName() {
+		return "GoalBehavior"
+	}
+
+	raycasting = false
+
+	preExecute() {}
+
+	execute(agent: Agent, agentSystem: AgentSystem) {
+		const antAgent = agent as AntAgent
+		const goal = new Vector3(8, 0, 0)
+
+		if (antAgent.position.distanceTo(goal) < 1) {
+			console.log("Goal reached")
+			antAgent.physicsBody?.angularDamping.set(1)
+			antAgent.physicsBody?.linearDamping.set(1)
+		}
+	}
+
+	postExecute() {}
+}
+
 export class AntAgent implements Agent {
 	private _id: string
 	private startPosition: Vector3
@@ -297,6 +320,7 @@ export const useEnvironment = create(
 				const agent = new AntAgent(new Vector3(-13, 1, 0), [
 					new MoveBehaviour(),
 					new HingeBehaviour(),
+					new GoalBehavior(),
 				])
 				//console.log("Adding agent ", agent.id)
 				state.agentSystems[0].addAgent(agent)

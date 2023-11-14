@@ -11,6 +11,8 @@ import { Geometry } from "three-stdlib"
 import { useAnimationStore } from "../store/animation"
 import { AntAgent, useEnvironment } from "../store/environment"
 
+const Ant_Radius = 0.5
+
 function toConvexProps(
 	bufferGeometry: BufferGeometry,
 ): ConvexPolyhedronProps["args"] {
