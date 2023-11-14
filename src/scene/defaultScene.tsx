@@ -8,8 +8,12 @@ import Floor from "../entities/floor"
 import Platform from "../entities/platform"
 import { AntAgent, useEnvironment } from "../store/environment"
 
+import Scene3FarWithObjs from "../entities/Scene3FarWithObjs"
+import Scene1Close from "../entities/Scene1Close"
+import Scene2Far from "../entities/Scene2Far"
+
 const Agent_Limit = 50
-const Spawn_Delay = 2
+const Spawn_Delay = 1
 
 const DefaultScene = () => {
 	const agents = useEnvironment((state) =>
@@ -44,18 +48,7 @@ const DefaultScene = () => {
 
 			<Physics>
 				<Debug>
-					<Floor />
-
-					<Platform position={new Vector3(-15, 0, 0)} />
-					<Platform position={new Vector3(15, 0, 0)} />
-
-					{/*Obstacles*/}
-					<Dodecahedron position={[-5, 2.5, 0]} castShadow>
-						<meshStandardMaterial color="hotpink" />
-					</Dodecahedron>
-					<Dodecahedron position={[5, -2.5, 0]} castShadow>
-						<meshStandardMaterial color="hotpink" />
-					</Dodecahedron>
+					<Scene1Close />
 
 					{agents.map((agent) => (
 						<AntAgentEntity

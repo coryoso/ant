@@ -4,12 +4,10 @@ import { useEffect, useRef } from "react"
 import { Mesh, Vector3 } from "three"
 import { useEnvironment } from "../store/environment"
 
-const Platform_Width = 10
-
-const Platform = ({ position }: { position: Vector3 }) => {
+const Platform = ({ position, size }: { position: Vector3; size: Vector3 }) => {
 	const [ref] = useBox(
 		() => ({
-			args: [Platform_Width, 1, 1],
+			args: size.toArray(),
 			position: position.toArray(),
 			mass: 0,
 			material: "floor",
@@ -27,7 +25,7 @@ const Platform = ({ position }: { position: Vector3 }) => {
 
 	return (
 		<mesh ref={ref}>
-			<boxGeometry args={[Platform_Width, 1, 1]} />
+			<boxGeometry args={size.toArray()} />
 			<meshNormalMaterial />
 		</mesh>
 	)
