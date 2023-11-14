@@ -14,6 +14,12 @@ import { create } from "zustand"
 import { immer } from "zustand/middleware/immer"
 import { Agent, Behaviour } from "../types/abxmts"
 
+export enum BodyRefType {
+	Ant,
+	Platform,
+	Obstacle,
+}
+
 export class MoveBehaviour extends Behaviour {
 	static behaviourName() {
 		return "MoveBehaviour"
@@ -26,7 +32,7 @@ export class MoveBehaviour extends Behaviour {
 	execute(agent: Agent, agentSystem: AgentSystem) {
 		const antAgent = agent as AntAgent
 
-		if (antAgent.attachMeshUUID && antAgent.physicsBody) {
+		if (antAgent.attachMeshUUIDs.length > 0 && antAgent.physicsBody) {
 			//antAgent.physicsBody.angularDamping.set(0.8)
 			// antAgent.physicsBody.linearDamping.set(0.8)
 
@@ -51,13 +57,20 @@ export class HingeBehaviour extends Behaviour {
 	}
 
 	raycasting = false
+	didHinge = false
+	hingable = true
 
 	preExecute() {}
 
 	execute(agent: Agent, agentSystem: AgentSystem) {
+		if (!this.hingable) {
+			return
+		}
+
 		const antAgent = agent as AntAgent
 
-		const allObjects = Object.values(useEnvironment.getState().bodyRefs)
+		const bodyRefs = useEnvironment.getState().bodyRefs
+		const allObjects = Object.values(bodyRefs)
 			.map((v) => v.current)
 			.filter((v) => v !== null) as Mesh[]
 		// console.log(antAgent.lastCollision?.contact.contactPoint)
@@ -69,7 +82,10 @@ export class HingeBehaviour extends Behaviour {
 		//console.log(antAgent.velocity)
 
 		if (antAgent.prevVelocity.y - antAgent.velocity.y > 1.3) {
+			const bodyTypes = useEnvironment.getState().bodyTypes
+
 			if (antAgent.velocity.y < -0.75 && !this.raycasting) {
+				this.didHinge = true
 				// if (antAgent.connectionCount === 0 && !this.raycasting) {
 				console.log("Attach agent ", agent.id)
 				// raycast
@@ -98,24 +114,45 @@ export class HingeBehaviour extends Behaviour {
 					})
 				}
 
-				const possibleObjects = Object.keys(useEnvironment.getState().bodyRefs)
+				const possibleObjects = Object.keys(bodyRefs)
 				const sortedIntersections = intersections
+					.filter((intersection) => intersection.distance < 1.2)
 					.sort((a, b) => {
-						return a.distance - b.distance
+						const bodyTypeA = bodyTypes[a.object.uuid]
+						const bodyTypeB = bodyTypes[b.object.uuid]
+
+						if (bodyTypeA === bodyTypeB) {
+							return a.distance - b.distance
+						} else {
+							if (
+								bodyTypeA === BodyRefType.Platform ||
+								bodyTypeA === BodyRefType.Obstacle
+							) {
+								return -1
+							} else {
+								return 1
+							}
+						}
 					})
 					.filter(
 						(intersection) =>
 							intersection.object.uuid !== antAgent.meshUUID &&
 							possibleObjects.includes(intersection.object.uuid),
 					)
-
-				antAgent.intersections = intersections.map(
-					(intersections) => intersections.point,
+				const uniqueUUIds = new Set(
+					sortedIntersections.map((v) => v.object.uuid),
 				)
+				const uniqueIntersections = Array.from(uniqueUUIds).map((uuid) => {
+					return sortedIntersections.filter((v) => v.object.uuid === uuid)[0]
+				})
 
-				if (sortedIntersections.length > 0) {
-					antAgent.attachPoint = sortedIntersections[0].point
-					antAgent.attachMeshUUID = sortedIntersections[0].object.uuid
+				if (uniqueIntersections.length > 0) {
+					antAgent.attachPoints = uniqueIntersections
+						.map((v) => v.point)
+						.slice(0, 2)
+					antAgent.attachMeshUUIDs = uniqueIntersections
+						.map((v) => v.object.uuid)
+						.slice(0, 2)
 				}
 			}
 		}
@@ -129,7 +166,7 @@ export class GoalBehavior extends Behaviour {
 		return "GoalBehavior"
 	}
 
-	raycasting = false
+	didReachGoal = false
 
 	preExecute() {}
 
@@ -138,9 +175,10 @@ export class GoalBehavior extends Behaviour {
 		const goal = new Vector3(8, 0, 0)
 
 		if (antAgent.position.distanceTo(goal) < 1) {
-			console.log("Goal reached")
 			antAgent.physicsBody?.angularDamping.set(1)
 			antAgent.physicsBody?.linearDamping.set(1)
+
+			this.didReachGoal = true
 		}
 	}
 
@@ -162,8 +200,8 @@ export class AntAgent implements Agent {
 	connectionCollision: CollideEvent | undefined = undefined
 	connectionCount: number | undefined = undefined
 
-	attachPoint: Vector3 | undefined = undefined
-	attachMeshUUID: string | undefined = undefined
+	attachPoints: Vector3[] = []
+	attachMeshUUIDs: string[] = []
 
 	intersections: Vector3[] = []
 
@@ -248,6 +286,9 @@ export class AntAgent implements Agent {
 export class AgentSystem {
 	agents: Record<string, Agent>
 
+	didTouchGoal = false
+	didHingeBothSides = false
+
 	constructor(agents: Agent[] = []) {
 		this.agents = agents.reduce(
 			(acc, agent) => {
@@ -258,12 +299,19 @@ export class AgentSystem {
 		)
 	}
 
-	addAgent(agent: Agent) {
-		this.agents[agent.id] = agent
-	}
+	spawnAgent() {
+		if (!this.didTouchGoal) {
+			const behaviours: Behaviour[] = [new MoveBehaviour(), new GoalBehavior()]
+			if (!this.didHingeBothSides) {
+				behaviours.push(new HingeBehaviour())
+			}
 
-	removeAgent(agent: Agent) {
-		delete this.agents[agent.id]
+			console.log(behaviours)
+
+			const agent = new AntAgent(new Vector3(-13, 1, 0), behaviours)
+			//console.log("Adding agent ", agent.id)
+			this.agents[agent.id] = agent
+		}
 	}
 
 	reset() {
@@ -276,7 +324,46 @@ export class AgentSystem {
 		Object.values(this.agents).forEach((agent) => agent.execute(this))
 	}
 
-	postExecute() {}
+	postExecute() {
+		if (!this.didHingeBothSides) {
+			const bodyTypes = Array.from(
+				new Set(
+					Object.values(this.agents)
+						.map((agent) => (agent as AntAgent).attachMeshUUIDs)
+						.flatMap((v) => v),
+				),
+			).map((uuid) => useEnvironment.getState().bodyTypes[uuid])
+			const platformTypeCount = bodyTypes.filter(
+				(v) => v === BodyRefType.Platform,
+			).length
+
+			if (platformTypeCount === 2) {
+				this.didHingeBothSides = true
+
+				Object.values(this.agents).forEach((agent) => {
+					;(
+						(agent as AntAgent).behaviours[
+							HingeBehaviour.behaviourName()
+						] as HingeBehaviour
+					).hingable = false
+				})
+			}
+		}
+
+		// ((agent as AntAgent).behaviours[GoalBehavior.behaviourName()] as GoalBehavior).didReachGoal
+		if (!this.didTouchGoal) {
+			this.didTouchGoal = Object.values(this.agents).reduce((acc, agent) => {
+				return (
+					acc ||
+					(
+						(agent as AntAgent).behaviours[
+							GoalBehavior.behaviourName()
+						] as GoalBehavior
+					).didReachGoal
+				)
+			}, false)
+		}
+	}
 }
 
 enum EnvironmentState {
@@ -288,6 +375,8 @@ enum EnvironmentState {
 interface Environment {
 	agentSystems: AgentSystem[]
 	bodyRefs: Record<string, MutableRefObject<Mesh | null>>
+	bodyTypes: Record<string, BodyRefType>
+	meshUUIDsToBodies: Record<string, string>
 
 	state: EnvironmentState
 
@@ -299,6 +388,8 @@ export const useEnvironment = create(
 	immer<Environment>((set) => ({
 		agentSystems: [new AgentSystem([])],
 		bodyRefs: {},
+		bodyTypes: {},
+		meshUUIDsToBodies: {},
 
 		state: EnvironmentState.Idle,
 
@@ -311,19 +402,14 @@ export const useEnvironment = create(
 				state.state = EnvironmentState.Running
 
 				state.agentSystems.forEach((agentSystem) => agentSystem.execute())
+				state.agentSystems.forEach((agentSystem) => agentSystem.postExecute())
 
 				state.state = EnvironmentState.Idle
 			})
 		},
 		spawnAgent: () => {
 			set((state) => {
-				const agent = new AntAgent(new Vector3(-13, 1, 0), [
-					new MoveBehaviour(),
-					new HingeBehaviour(),
-					new GoalBehavior(),
-				])
-				//console.log("Adding agent ", agent.id)
-				state.agentSystems[0].addAgent(agent)
+				state.agentSystems[0].spawnAgent()
 			})
 		},
 	})),

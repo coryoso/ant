@@ -1,7 +1,5 @@
 import { Debug, Physics } from "@react-three/cannon"
 import { Environment, OrbitControls } from "@react-three/drei"
-import { Vector3 } from "three"
-import AntAgentEntity from "../entities/antAgent"
 import Floor from "../entities/floor"
 
 const AntAnimationScene = () => {
@@ -18,14 +16,14 @@ const AntAnimationScene = () => {
 				<Debug>
 					<Floor />
 
-					<AntAgentEntity
+					{/* <AntAgentEntity
 						id="123"
 						position={new Vector3(0, -4, 0)}
 						attachPoint={undefined}
 						intersections={[]}
 						attachMeshUUID={undefined}
 						prevVelocity={new Vector3(0, 0, 0)}
-					/>
+					/> */}
 				</Debug>
 			</Physics>
 		</>
