@@ -1,4 +1,9 @@
-import { useSphere, useSpring } from "@react-three/cannon"
+import {
+	useSphere,
+	useSpring,
+	useLockConstraint,
+	usePointToPointConstraint,
+} from "@react-three/cannon"
 import { Box } from "@react-three/drei"
 import { MutableRefObject, useEffect, useRef, useState } from "react"
 import { Mesh, Vector3 } from "three"
@@ -8,6 +13,7 @@ import { AnimatedAnt } from "./animatedAnt"
 const Ant_Radius = 0.5
 
 const AntAgentEntity = ({
+	prevVelocity,
 	position,
 	id,
 	// connectionCollision,
@@ -15,6 +21,7 @@ const AntAgentEntity = ({
 	attachMeshUUID,
 	intersections,
 }: {
+	prevVelocity: Vector3
 	position: Vector3
 	id: string
 	// connectionCollision: CollideEvent | undefined
@@ -25,7 +32,7 @@ const AntAgentEntity = ({
 	const [ref, body] = useSphere(
 		() => ({
 			args: [Ant_Radius],
-			mass: 3,
+			mass: 1,
 			position: position.toArray(),
 			material: "ant",
 			linearDamping: 0.999,
@@ -99,12 +106,14 @@ const AntAgentEntity = ({
 			// worldAnchorB: connectionCollision
 			// 	? connectionCollision.contact.bi.position.toArray()
 			// 	: undefined,
-			damping: 1,
-			stiffness: 150,
+			damping: 10,
+			stiffness: 100,
 			restLength: 0.05,
 		},
 		[connectionRef],
 	)
+
+	//useLockConstraint(ref, connectionRef, { maxForce: 1e6 }, [connectionRef])
 
 	// useHingeConstraint(
 	// 	ref,
@@ -129,7 +138,7 @@ const AntAgentEntity = ({
 					clearcoatRoughness={0.35}
 				/>
 
-				<AnimatedAnt />
+				{/* <AnimatedAnt /> */}
 			</mesh>
 
 			{attachPoint && (

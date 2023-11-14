@@ -8,7 +8,7 @@ import Floor from "../entities/floor"
 import Platform from "../entities/platform"
 import { AntAgent, useEnvironment } from "../store/environment"
 
-const Agent_Limit = 100
+const Agent_Limit = 50
 const Spawn_Delay = 2
 
 const DefaultScene = () => {
@@ -67,6 +67,7 @@ const DefaultScene = () => {
 							attachPoint={(agent as AntAgent).attachPoint}
 							attachMeshUUID={(agent as AntAgent).attachMeshUUID}
 							intersections={(agent as AntAgent).intersections}
+							prevVelocity={(agent as AntAgent).prevVelocity}
 						/>
 					))}
 				</Debug>

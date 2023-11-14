@@ -27,18 +27,18 @@ export class MoveBehaviour extends Behaviour {
 		const antAgent = agent as AntAgent
 
 		if (antAgent.attachMeshUUID && antAgent.physicsBody) {
-			antAgent.physicsBody.angularDamping.set(0.8)
+			//antAgent.physicsBody.angularDamping.set(0.8)
 			// antAgent.physicsBody.linearDamping.set(0.8)
 
 			this.paused = true
 		}
 
 		if (antAgent.physicsBody && !this.paused) {
-			// antAgent.physicsBody.angularDamping.set(0.6)
-			// antAgent.physicsBody.angularFactor.set(0, 0, 0)
+			antAgent.physicsBody.angularDamping.set(0.6)
+			//antAgent.physicsBody.angularFactor.set(0, 0, 0)
 
-			antAgent.physicsBody.applyImpulse([0.8, 0, 0], [0, 0, 0])
-			antAgent.physicsBody.applyTorque([0, 0, -0.5])
+			antAgent.physicsBody.applyImpulse([0.3, 0, 0], [0, 0, 0])
+			//antAgent.physicsBody.applyTorque([0, 0, -0.5])
 		}
 	}
 
@@ -65,54 +65,59 @@ export class HingeBehaviour extends Behaviour {
 		// if (antAgent.velocity.y < -0.5 && antAgent.needsConnection) {
 		// 	antAgent.connectionCollision = antAgent.lastCollision
 		// }
+		//console.log(antAgent.prevVelocity)
+		//console.log(antAgent.velocity)
 
-		if (antAgent.velocity.y < -0.5 && !this.raycasting) {
-			// if (antAgent.connectionCount === 0 && !this.raycasting) {
-			console.log("Attach agent ", agent.id)
-			// raycast
-			this.raycasting = true
+		if (antAgent.prevVelocity.y - antAgent.velocity.y > 1.3) {
+			console.log("Velocity change")
+			if (antAgent.velocity.y < -0.75 && !this.raycasting) {
+				// if (antAgent.connectionCount === 0 && !this.raycasting) {
+				console.log("Attach agent ", agent.id)
+				// raycast
+				this.raycasting = true
 
-			let intersections: Intersection<Object3D<Object3DEventMap>>[] = []
+				let intersections: Intersection<Object3D<Object3DEventMap>>[] = []
 
-			const raycaster = new Raycaster()
+				const raycaster = new Raycaster()
 
-			for (let polarAngle = 0; polarAngle <= 360; polarAngle += 5) {
-				const phi = MathUtils.degToRad(polarAngle)
+				for (let polarAngle = 0; polarAngle <= 360; polarAngle += 5) {
+					const phi = MathUtils.degToRad(polarAngle)
 
-				// Calculate the direction of the ray based on polar coordinates
-				const rayDirection = new Vector3(
-					Math.sin(phi),
-					Math.cos(phi),
-					0,
-				).normalize()
+					// Calculate the direction of the ray based on polar coordinates
+					const rayDirection = new Vector3(
+						Math.sin(phi),
+						Math.cos(phi),
+						0,
+					).normalize()
 
-				raycaster.set(antAgent.position, rayDirection)
+					raycaster.set(antAgent.position, rayDirection)
 
-				// Perform the raycasting
-				const intersection = raycaster.intersectObjects(allObjects)
-				intersection.forEach((intersection) => {
-					intersections.push(intersection)
-				})
-			}
+					// Perform the raycasting
+					const intersection = raycaster.intersectObjects(allObjects)
+					intersection.forEach((intersection) => {
+						intersections.push(intersection)
+					})
+				}
 
-			const possibleObjects = Object.keys(useEnvironment.getState().bodyRefs)
-			const sortedIntersections = intersections
-				.sort((a, b) => {
-					return a.distance - b.distance
-				})
-				.filter(
-					(intersection) =>
-						intersection.object.uuid !== antAgent.meshUUID &&
-						possibleObjects.includes(intersection.object.uuid),
+				const possibleObjects = Object.keys(useEnvironment.getState().bodyRefs)
+				const sortedIntersections = intersections
+					.sort((a, b) => {
+						return a.distance - b.distance
+					})
+					.filter(
+						(intersection) =>
+							intersection.object.uuid !== antAgent.meshUUID &&
+							possibleObjects.includes(intersection.object.uuid),
+					)
+
+				antAgent.intersections = intersections.map(
+					(intersections) => intersections.point,
 				)
 
-			antAgent.intersections = intersections.map(
-				(intersections) => intersections.point,
-			)
-
-			if (sortedIntersections.length > 0) {
-				antAgent.attachPoint = sortedIntersections[0].point
-				antAgent.attachMeshUUID = sortedIntersections[0].object.uuid
+				if (sortedIntersections.length > 0) {
+					antAgent.attachPoint = sortedIntersections[0].point
+					antAgent.attachMeshUUID = sortedIntersections[0].object.uuid
+				}
 			}
 		}
 	}
@@ -127,6 +132,7 @@ export class AntAgent implements Agent {
 	private _physicsBody: PublicApi | undefined = undefined
 	private _behaviours: Record<string, Behaviour>
 
+	prevVelocity: Vector3 = new Vector3()
 	velocity: Vector3 = new Vector3()
 
 	lastCollision: CollideEvent | undefined = undefined
@@ -180,6 +186,8 @@ export class AntAgent implements Agent {
 	set physicsBody(body: PublicApi | undefined) {
 		if (this._physicsBody !== body) {
 			this._physicsBody = body
+
+			this.prevVelocity = this.velocity
 
 			body?.position.subscribe((position) => {
 				this.position = new Vector3(...position)
@@ -288,7 +296,7 @@ export const useEnvironment = create(
 					new MoveBehaviour(),
 					new HingeBehaviour(),
 				])
-				console.log("Adding agent ", agent.id)
+				//console.log("Adding agent ", agent.id)
 				state.agentSystems[0].addAgent(agent)
 			})
 		},

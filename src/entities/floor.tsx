@@ -21,7 +21,7 @@ const Floor = () => {
 	})
 
 	useContactMaterial("ant", "ant", {
-		friction: 1,
+		friction: 0.5,
 	})
 
 	return (
