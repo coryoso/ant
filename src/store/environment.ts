@@ -19,16 +19,26 @@ export class MoveBehaviour extends Behaviour {
 		return "MoveBehaviour"
 	}
 
+	private paused = false
+
 	preExecute() {}
 
 	execute(agent: Agent, agentSystem: AgentSystem) {
 		const antAgent = agent as AntAgent
 
-		if (antAgent.physicsBody) {
-			antAgent.physicsBody.angularDamping.set(0.6)
+		if (antAgent.attachMeshUUID && antAgent.physicsBody) {
+			antAgent.physicsBody.angularDamping.set(0.8)
+			// antAgent.physicsBody.linearDamping.set(0.8)
+
+			this.paused = true
+		}
+
+		if (antAgent.physicsBody && !this.paused) {
+			// antAgent.physicsBody.angularDamping.set(0.6)
 			// antAgent.physicsBody.angularFactor.set(0, 0, 0)
 
-			antAgent.physicsBody.applyImpulse([0.4, 0, 0], [0, 0, 0])
+			antAgent.physicsBody.applyImpulse([0.8, 0, 0], [0, 0, 0])
+			antAgent.physicsBody.applyTorque([0, 0, -0.5])
 		}
 	}
 
@@ -47,19 +57,20 @@ export class HingeBehaviour extends Behaviour {
 	execute(agent: Agent, agentSystem: AgentSystem) {
 		const antAgent = agent as AntAgent
 
+		const allObjects = Object.values(useEnvironment.getState().bodyRefs)
+			.map((v) => v.current)
+			.filter((v) => v !== null) as Mesh[]
 		// console.log(antAgent.lastCollision?.contact.contactPoint)
 
 		// if (antAgent.velocity.y < -0.5 && antAgent.needsConnection) {
 		// 	antAgent.connectionCollision = antAgent.lastCollision
 		// }
 
-		if (antAgent.connectionCount === 0 && !this.raycasting) {
+		if (antAgent.velocity.y < -0.5 && !this.raycasting) {
+			// if (antAgent.connectionCount === 0 && !this.raycasting) {
+			console.log("Attach agent ", agent.id)
 			// raycast
 			this.raycasting = true
-
-			const allObjects = Object.values(useEnvironment.getState().bodyRefs)
-				.map((v) => v.current)
-				.filter((v) => v !== null) as Mesh[]
 
 			let intersections: Intersection<Object3D<Object3DEventMap>>[] = []
 
@@ -98,9 +109,6 @@ export class HingeBehaviour extends Behaviour {
 			antAgent.intersections = intersections.map(
 				(intersections) => intersections.point,
 			)
-
-			console.log(antAgent.meshUUID)
-			console.log(intersections)
 
 			if (sortedIntersections.length > 0) {
 				antAgent.attachPoint = sortedIntersections[0].point
@@ -276,12 +284,12 @@ export const useEnvironment = create(
 		},
 		spawnAgent: () => {
 			set((state) => {
-				state.agentSystems[0].addAgent(
-					new AntAgent(new Vector3(-13, 1, 0), [
-						new MoveBehaviour(),
-						new HingeBehaviour(),
-					]),
-				)
+				const agent = new AntAgent(new Vector3(-13, 1, 0), [
+					new MoveBehaviour(),
+					new HingeBehaviour(),
+				])
+				console.log("Adding agent ", agent.id)
+				state.agentSystems[0].addAgent(agent)
 			})
 		},
 	})),

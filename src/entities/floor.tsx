@@ -14,10 +14,14 @@ const Floor = () => {
 	)
 
 	useContactMaterial("floor", "ant", {
-		friction: 0,
+		friction: 1,
 		restitution: 0.3,
 		contactEquationStiffness: 1e8,
 		contactEquationRelaxation: 3,
+	})
+
+	useContactMaterial("ant", "ant", {
+		friction: 1,
 	})
 
 	return (

@@ -8,7 +8,7 @@ import Floor from "../entities/floor"
 import Platform from "../entities/platform"
 import { AntAgent, useEnvironment } from "../store/environment"
 
-const Agent_Limit = 50
+const Agent_Limit = 100
 const Spawn_Delay = 2
 
 const DefaultScene = () => {

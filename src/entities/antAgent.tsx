@@ -25,10 +25,11 @@ const AntAgentEntity = ({
 	const [ref, body] = useSphere(
 		() => ({
 			args: [Ant_Radius],
-			mass: 1,
+			mass: 3,
 			position: position.toArray(),
 			material: "ant",
-			linearDamping: 0.99999,
+			linearDamping: 0.999,
+			// linearDamping: 0.99999,
 			// onCollide: (e) => {
 			// 	console.log("COLLIDING")
 			// 	useEnvironment.setState((state) => {
@@ -100,7 +101,7 @@ const AntAgentEntity = ({
 			// 	: undefined,
 			damping: 1,
 			stiffness: 150,
-			restLength: 0.2,
+			restLength: 0.05,
 		},
 		[connectionRef],
 	)
