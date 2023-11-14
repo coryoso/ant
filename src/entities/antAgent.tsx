@@ -106,8 +106,8 @@ const AntAgentEntity = ({
 			// worldAnchorB: connectionCollision
 			// 	? connectionCollision.contact.bi.position.toArray()
 			// 	: undefined,
-			damping: 10,
-			stiffness: 100,
+			damping: 1,
+			stiffness: 150,
 			restLength: 0.05,
 		},
 		[connectionRef],

@@ -69,7 +69,6 @@ export class HingeBehaviour extends Behaviour {
 		//console.log(antAgent.velocity)
 
 		if (antAgent.prevVelocity.y - antAgent.velocity.y > 1.3) {
-			console.log("Velocity change")
 			if (antAgent.velocity.y < -0.75 && !this.raycasting) {
 				// if (antAgent.connectionCount === 0 && !this.raycasting) {
 				console.log("Attach agent ", agent.id)
