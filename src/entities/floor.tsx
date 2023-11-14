@@ -27,7 +27,9 @@ const Floor = () => {
 	return (
 		<mesh ref={ref} castShadow receiveShadow>
 			<planeGeometry args={[100, 100]} />
-			<meshStandardMaterial color={"#dddddd"} />
+			{/* <meshStandardMaterial color={"#dddddd"} /> */}
+
+			<shadowMaterial transparent opacity={0.75} />
 		</mesh>
 	)
 }

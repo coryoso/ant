@@ -1,5 +1,5 @@
 import { Physics } from "@react-three/cannon"
-import { Environment, OrbitControls } from "@react-three/drei"
+import { Environment, OrbitControls, SoftShadows } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
 import { useRef } from "react"
 import AntAgentEntity from "../entities/antAgent"
@@ -35,12 +35,18 @@ const DefaultScene = () => {
 	return (
 		<>
 			<Environment preset="sunset" background />
+			<SoftShadows size={100} samples={16} />
 
+			{/* <fog attach="fog" args={["#f0f0f0", 0, 20]} /> */}
 			{/* <pointLight position={[10, 10, 10]} /> */}
-			<directionalLight position={[0, 10, 0]} intensity={1} castShadow />
-
+			<directionalLight
+				position={[-5, 5, 5]}
+				intensity={1}
+				castShadow
+				shadow-mapSize={2048}
+				shadow-bias={-0.0001}
+			/>
 			<OrbitControls enableDamping={false} />
-
 			<Physics>
 				{/* <Debug > */}
 				<Scene1Close />
