@@ -1,8 +1,7 @@
 import { Vector3 } from "three"
 import Floor from "./floor"
+import Obstacle from "./obstacle"
 import Platform from "./platform"
-import { Debug } from "@react-three/cannon"
-import { Dodecahedron } from "@react-three/drei"
 
 const Scene3FarWithObjs = () => {
 	return (
@@ -16,13 +15,9 @@ const Scene3FarWithObjs = () => {
 				position={new Vector3(15, -5, 0)}
 				size={new Vector3(10, 11, 10)}
 			/>
-			{/*Obstacles*/}
-			<Dodecahedron position={[-5, 2.5, 0]} castShadow>
-				<meshStandardMaterial color="hotpink" />
-			</Dodecahedron>
-			<Dodecahedron position={[5, -2.5, 0]} castShadow>
-				<meshStandardMaterial color="hotpink" />
-			</Dodecahedron>
+
+			<Obstacle position={new Vector3(-5, 2.5, 0)} />
+			<Obstacle position={new Vector3(5, -2.5, 0)} />
 		</>
 	)
 }

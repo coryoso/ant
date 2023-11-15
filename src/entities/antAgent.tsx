@@ -14,7 +14,7 @@ import { AnimatedAnt } from "./animatedAnt"
 
 const Ant_Radius = 0.5
 
-function toConvexProps(
+export function toConvexProps(
 	bufferGeometry: BufferGeometry,
 ): ConvexPolyhedronProps["args"] {
 	const geo = new Geometry().fromBufferGeometry(bufferGeometry)
