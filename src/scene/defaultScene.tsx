@@ -36,9 +36,9 @@ const DefaultScene = () => {
 
 	return (
 		<>
-			{/* <Environment preset="forest" background /> */}
-			<Environment files="/monks_forest_4k.hdr" background />
-			<SoftShadows size={100} samples={16} />
+			<Environment preset="forest" background />
+
+			{/* <SoftShadows size={100} samples={16} /> */}
 
 			{/* <fog attach="fog" args={["#f0f0f0", 0, 20]} /> */}
 			{/* <pointLight position={[10, 10, 10]} /> */}
@@ -50,7 +50,7 @@ const DefaultScene = () => {
 				shadow-bias={-0.0001}
 			/>
 			<OrbitControls enableDamping={false} />
-			<FallenTree />
+
 			<Physics>
 				<Scene1Close />
 
