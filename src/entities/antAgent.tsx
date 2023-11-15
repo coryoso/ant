@@ -139,7 +139,7 @@ const AntAgentEntity = ({
 			worldAnchorB:
 				attachPoints.length > 0 ? attachPoints[0]!.toArray() : undefined,
 			damping: 1,
-			stiffness: 150,
+			stiffness: 50,
 			restLength: 0.05,
 		},
 		[connectionRefA],
@@ -152,7 +152,7 @@ const AntAgentEntity = ({
 			worldAnchorB:
 				attachPoints.length > 1 ? attachPoints[1]!.toArray() : undefined,
 			damping: 1,
-			stiffness: 150,
+			stiffness: 50,
 			restLength: 0.05,
 		},
 		[connectionRefB],
@@ -207,7 +207,7 @@ const AntAgentEntity = ({
 			<mesh ref={ref} castShadow>
 				<sphereGeometry args={[0.5, 32, 16]} />
 				<meshPhysicalMaterial
-					color={0xffffff}
+					color="blue"
 					side={DoubleSide}
 					opacity={0.2}
 					metalness={0}
@@ -227,7 +227,7 @@ const AntAgentEntity = ({
 				<AnimatedAnt position={[-0.05, -0.05, 0]} scale={6} />
 			</mesh>
 
-			{/* {attachPoints.length > 0 && attachPoints[0] && (
+			{attachPoints.length > 0 && attachPoints[0] && (
 				<Line
 					points={[position, attachPoints[0].toArray()]}
 					color="black"
@@ -246,7 +246,7 @@ const AntAgentEntity = ({
 					dashed={false}
 					ref={lineBRef}
 				/>
-			)} */}
+			)}
 		</>
 	)
 }

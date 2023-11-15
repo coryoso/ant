@@ -1,5 +1,6 @@
 import { useBox } from "@react-three/cannon"
 
+import { Edges } from "@react-three/drei"
 import { useEffect, useRef } from "react"
 import { Mesh, Vector3 } from "three"
 import { BodyRefType, useEnvironment } from "../store/environment"
@@ -28,11 +29,11 @@ const Platform = ({ position, size }: { position: Vector3; size: Vector3 }) => {
 	}, [position, ref])
 
 	return (
-		<mesh ref={ref} receiveShadow castShadow>
+		<mesh ref={ref} receiveShadow>
 			<boxGeometry args={size.toArray()} />
-			{/* <meshStandardMaterial color="white" roughness={0.1} /> */}
-			<meshBasicMaterial color="black" wireframeLinewidth={30} wireframe />
-			{/* <meshNormalMaterial /> */}
+			<meshBasicMaterial color="white" />
+
+			<Edges scale={1} threshold={15} color="black" />
 		</mesh>
 	)
 }

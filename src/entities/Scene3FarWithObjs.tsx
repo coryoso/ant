@@ -16,8 +16,8 @@ const Scene3FarWithObjs = () => {
 				size={new Vector3(10, 11, 10)}
 			/>
 
-			<Obstacle position={new Vector3(-5, 2.5, 0)} />
-			<Obstacle position={new Vector3(5, -2.5, 0)} />
+			<Obstacle position={new Vector3(-8, 1, 0)} />
+			<Obstacle position={new Vector3(5, -1, 0)} />
 		</>
 	)
 }

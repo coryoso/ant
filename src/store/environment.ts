@@ -73,6 +73,7 @@ export class HingeBehaviour extends Behaviour {
 		const allObjects = Object.values(bodyRefs)
 			.map((v) => v.current)
 			.filter((v) => v !== null) as Mesh[]
+
 		// console.log(antAgent.lastCollision?.contact.contactPoint)
 
 		// if (antAgent.velocity.y < -0.5 && antAgent.needsConnection) {
@@ -80,11 +81,38 @@ export class HingeBehaviour extends Behaviour {
 		// }
 		//console.log(antAgent.prevVelocity)
 		//console.log(antAgent.velocity)
+		let shouldAttach = false
+		let forceAttach = false
 
-		if (antAgent.prevVelocity.y - antAgent.velocity.y > 1.3) {
+		const lastVelocties = antAgent.velocities.slice(-8)
+		const averageVelocity = lastVelocties
+			.reduce((acc, v) => acc.add(v), new Vector3())
+			.divideScalar(lastVelocties.length)
+		console.log(averageVelocity.length())
+
+		if (averageVelocity.length() > 2.4) {
+			const rightest = Object.values(
+				useEnvironment.getState().agentSystems[0].agents,
+			)
+				.map((a) => (a as AntAgent).position.x)
+				.sort((a, b) => b - a)
+			console.log(rightest)
+			shouldAttach = antAgent.position.x >= rightest[0]
+		}
+
+		if (averageVelocity.length() > 2.75) {
+			shouldAttach = true
+			forceAttach = true
+		}
+
+		if (shouldAttach) {
+			if (antAgent.physicsBody) {
+				antAgent.physicsBody.applyImpulse([0.3, 0, 0], [0, 0, 0])
+			}
+
 			const bodyTypes = useEnvironment.getState().bodyTypes
 
-			if (antAgent.velocity.y < -0.75 && !this.raycasting) {
+			if (!this.raycasting) {
 				this.didHinge = true
 				// if (antAgent.connectionCount === 0 && !this.raycasting) {
 				console.log("Attach agent ", agent.id)
@@ -116,7 +144,13 @@ export class HingeBehaviour extends Behaviour {
 
 				const possibleObjects = Object.keys(bodyRefs)
 				const sortedIntersections = intersections
-					.filter((intersection) => intersection.distance < 1.2)
+					.filter((intersection) => {
+						if (!forceAttach) {
+							return intersection.distance < 1.2
+						} else {
+							return intersection.distance < 2
+						}
+					})
 					.sort((a, b) => {
 						const bodyTypeA = bodyTypes[a.object.uuid]
 						const bodyTypeB = bodyTypes[b.object.uuid]
@@ -192,8 +226,7 @@ export class AntAgent implements Agent {
 	private _physicsBody: PublicApi | undefined = undefined
 	private _behaviours: Record<string, Behaviour>
 
-	prevVelocity: Vector3 = new Vector3()
-	velocity: Vector3 = new Vector3()
+	velocities: Vector3[] = []
 
 	lastCollision: CollideEvent | undefined = undefined
 	// connectionUUID: string | undefined = undefined
@@ -231,9 +264,6 @@ export class AntAgent implements Agent {
 		Object.values(this._behaviours).forEach((behaviour) =>
 			behaviour.execute(this, agentSystem),
 		)
-
-		if (this.prevVelocity.distanceToSquared(this.velocity)) {
-		}
 	}
 
 	postExecute() {}
@@ -250,14 +280,12 @@ export class AntAgent implements Agent {
 		if (this._physicsBody !== body) {
 			this._physicsBody = body
 
-			this.prevVelocity = this.velocity
-
 			body?.position.subscribe((position) => {
 				this.position = new Vector3(...position)
 			})
 
 			body?.velocity.subscribe((velocity) => {
-				this.velocity = new Vector3(...velocity)
+				this.velocities.push(new Vector3(...velocity))
 			})
 		}
 	}
@@ -306,9 +334,7 @@ export class AgentSystem {
 				behaviours.push(new HingeBehaviour())
 			}
 
-			console.log(behaviours)
-
-			const agent = new AntAgent(new Vector3(-18, 1, 0), behaviours)
+			const agent = new AntAgent(new Vector3(-8, 1, 0), behaviours)
 			//console.log("Adding agent ", agent.id)
 			this.agents[agent.id] = agent
 		}

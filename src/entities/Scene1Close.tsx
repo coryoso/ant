@@ -6,6 +6,7 @@ const Scene1Close = () => {
 	return (
 		<>
 			<Floor />
+
 			<Platform
 				position={new Vector3(-8, -5, 0)}
 				size={new Vector3(13, 11, 10)}

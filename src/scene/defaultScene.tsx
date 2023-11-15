@@ -1,14 +1,11 @@
-import { Debug, Physics } from "@react-three/cannon"
-import { Environment, OrbitControls, SoftShadows } from "@react-three/drei"
+import { Physics } from "@react-three/cannon"
+import { Environment, OrbitControls } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
 import { useRef } from "react"
 import AntAgentEntity from "../entities/antAgent"
 import { AntAgent, useEnvironment } from "../store/environment"
 
-import { Perf } from "r3f-perf"
-import Scene1Close from "../entities/Scene1Close"
 import Scene2Far from "../entities/Scene2Far"
-import Scene3FarWithObjs from "../entities/Scene3FarWithObjs"
 
 const Agent_Limit = 200
 const Spawn_Delay = 2
@@ -37,12 +34,12 @@ const DefaultScene = () => {
 
 	return (
 		<>
-			{/* <Environment preset="forest" background /> */}
+			<Environment preset="forest" />
 			{/* @ts-ignore */}
 
 			{/* <Perf /> */}
 
-			<SoftShadows size={100} samples={16} />
+			{/* <SoftShadows size={100} samples={16} /> */}
 
 			{/* <fog attach="fog" args={["#f0f0f0", 0, 20]} /> */}
 			{/* <pointLight position={[10, 10, 10]} /> */}
@@ -56,7 +53,9 @@ const DefaultScene = () => {
 			<OrbitControls enableDamping={false} />
 
 			<Physics>
-				<Scene3FarWithObjs />
+				{/* <Scene1Close /> */}
+				<Scene2Far />
+				{/* <Scene3FarWithObjs /> */}
 
 				{agents.map((agent) => (
 					<AntAgentEntity
