@@ -208,9 +208,8 @@ const AntAgentEntity = ({
 				<sphereGeometry args={[0.5, 32, 16]} />
 				<meshPhysicalMaterial
 					color={0xffffff}
-					transmission={1}
 					side={DoubleSide}
-					opacity={1}
+					opacity={0.2}
 					metalness={0}
 					roughness={0}
 					thickness={0.2}

@@ -1,13 +1,12 @@
 import { Physics } from "@react-three/cannon"
-import { Environment, OrbitControls, SoftShadows } from "@react-three/drei"
+import { Environment, OrbitControls } from "@react-three/drei"
 import { useFrame } from "@react-three/fiber"
 import { useRef } from "react"
 import AntAgentEntity from "../entities/antAgent"
 import { AntAgent, useEnvironment } from "../store/environment"
 
+import { Perf } from "r3f-perf"
 import Scene1Close from "../entities/Scene1Close"
-import Scene2Far from "../entities/Scene2Far"
-import { FallenTree } from "../entities/fallenTree"
 
 const Agent_Limit = 50
 const Spawn_Delay = 3
@@ -37,6 +36,8 @@ const DefaultScene = () => {
 	return (
 		<>
 			<Environment preset="forest" background />
+
+			<Perf />
 
 			{/* <SoftShadows size={100} samples={16} /> */}
 
