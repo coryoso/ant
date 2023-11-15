@@ -30,8 +30,8 @@ const Platform = ({ position, size }: { position: Vector3; size: Vector3 }) => {
 	return (
 		<mesh ref={ref} receiveShadow castShadow>
 			<boxGeometry args={size.toArray()} />
-			<meshStandardMaterial color="white" roughness={0.1} />
-
+			{/* <meshStandardMaterial color="white" roughness={0.1} /> */}
+			<meshBasicMaterial color="black" wireframeLinewidth={30} wireframe />
 			{/* <meshNormalMaterial /> */}
 		</mesh>
 	)

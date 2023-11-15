@@ -227,7 +227,7 @@ const AntAgentEntity = ({
 				<AnimatedAnt position={[-0.05, -0.05, 0]} scale={6} />
 			</mesh>
 
-			{attachPoints.length > 0 && attachPoints[0] && (
+			{/* {attachPoints.length > 0 && attachPoints[0] && (
 				<Line
 					points={[position, attachPoints[0].toArray()]}
 					color="black"
@@ -246,7 +246,7 @@ const AntAgentEntity = ({
 					dashed={false}
 					ref={lineBRef}
 				/>
-			)}
+			)} */}
 		</>
 	)
 }

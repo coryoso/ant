@@ -308,7 +308,7 @@ export class AgentSystem {
 
 			console.log(behaviours)
 
-			const agent = new AntAgent(new Vector3(-13, 1, 0), behaviours)
+			const agent = new AntAgent(new Vector3(-18, 1, 0), behaviours)
 			//console.log("Adding agent ", agent.id)
 			this.agents[agent.id] = agent
 		}
