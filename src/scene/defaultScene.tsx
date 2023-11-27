@@ -5,7 +5,7 @@ import { useRef } from "react"
 import AntAgentEntity from "../entities/antAgent"
 import { AntAgent, useEnvironment } from "../store/environment"
 
-import Scene2Far from "../entities/Scene2Far"
+import Scene3FarWithObjs from "../entities/Scene3FarWithObjs"
 
 const Agent_Limit = 200
 const Spawn_Delay = 2
@@ -54,8 +54,8 @@ const DefaultScene = () => {
 
 			<Physics>
 				{/* <Scene1Close /> */}
-				<Scene2Far />
-				{/* <Scene3FarWithObjs /> */}
+				{/* <Scene2Far /> */}
+				<Scene3FarWithObjs />
 
 				{agents.map((agent) => (
 					<AntAgentEntity

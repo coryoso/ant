@@ -88,9 +88,8 @@ export class HingeBehaviour extends Behaviour {
 		const averageVelocity = lastVelocties
 			.reduce((acc, v) => acc.add(v), new Vector3())
 			.divideScalar(lastVelocties.length)
-		console.log(averageVelocity.length())
 
-		if (averageVelocity.length() > 2.4) {
+		if (averageVelocity.y < -1.05) {
 			const rightest = Object.values(
 				useEnvironment.getState().agentSystems[0].agents,
 			)
@@ -100,7 +99,7 @@ export class HingeBehaviour extends Behaviour {
 			shouldAttach = antAgent.position.x >= rightest[0]
 		}
 
-		if (averageVelocity.length() > 2.75) {
+		if (averageVelocity.y < -1.2) {
 			shouldAttach = true
 			forceAttach = true
 		}
@@ -334,7 +333,7 @@ export class AgentSystem {
 				behaviours.push(new HingeBehaviour())
 			}
 
-			const agent = new AntAgent(new Vector3(-8, 1, 0), behaviours)
+			const agent = new AntAgent(new Vector3(-14, 1, 0), behaviours)
 			//console.log("Adding agent ", agent.id)
 			this.agents[agent.id] = agent
 		}
